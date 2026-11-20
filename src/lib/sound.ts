@@ -1,19 +1,10 @@
 // Sound effects synthesized with the Web Audio API (no audio files).
 // Browsers only allow audio after a user gesture; the first click unlocks it.
 
-const KEY = 'geo-trivia:muted'
 let ctx: AudioContext | null = null
-let muted = (() => {
-  try {
-    return localStorage.getItem(KEY) === '1'
-  } catch {
-    return false
-  }
-})()
-const listeners = new Set<(m: boolean) => void>()
 
-function audio(): AudioContext | null {
-  if (muted) return null
+/** The shared AudioContext (music + effects), created lazily and resumed if the browser suspended it. */
+export function getAudioContext(): AudioContext | null {
   if (!ctx) {
     try {
       ctx = new AudioContext()
@@ -25,21 +16,39 @@ function audio(): AudioContext | null {
   return ctx
 }
 
-export function isMuted() {
-  return muted
-}
-export function setMuted(m: boolean) {
-  muted = m
-  try {
-    localStorage.setItem(KEY, m ? '1' : '0')
-  } catch {
-    /* ignore */
+/** A persisted on/off switch with change listeners. */
+export function toggle(key: string, defaultOn = true) {
+  let on = (() => {
+    try {
+      const v = localStorage.getItem(key)
+      return v === null ? defaultOn : v === '1'
+    } catch {
+      return defaultOn
+    }
+  })()
+  const listeners = new Set<(on: boolean) => void>()
+  return {
+    get: () => on,
+    set(v: boolean) {
+      on = v
+      try {
+        localStorage.setItem(key, v ? '1' : '0')
+      } catch {
+        /* private mode */
+      }
+      listeners.forEach((l) => l(v))
+    },
+    subscribe(l: (on: boolean) => void) {
+      listeners.add(l)
+      return () => void listeners.delete(l)
+    },
   }
-  listeners.forEach((l) => l(m))
 }
-export function onMuteChange(l: (m: boolean) => void) {
-  listeners.add(l)
-  return () => listeners.delete(l)
+
+export const sfxEnabled = toggle('geo-trivia:sfx')
+
+function audio(): AudioContext | null {
+  return sfxEnabled.get() ? getAudioContext() : null
 }
 
 function tone(freq: number, at: number, dur: number, type: OscillatorType = 'sine', vol = 0.15, slideTo?: number) {

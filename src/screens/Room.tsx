@@ -5,6 +5,7 @@ import { QuestionView } from '../components/QuestionView'
 import { roundLabel, TYPE_INFO, AREA_EMOJI } from '../game/settings'
 import { serverNow, useRoom } from '../game/useRoom'
 import { saveProfile, type Profile } from '../lib/profile'
+import { duckMusic, playMusic } from '../lib/music'
 import { sfx } from '../lib/sound'
 import { call, ensureSignedIn, type Answer, type DbQuestion, type Player, type Room as RoomRow } from '../lib/supabase'
 import { go } from '../router'
@@ -55,6 +56,10 @@ export function RoomScreen({ code, profile, setProfile }: { code: string; profil
   }, [code, needsProfile])
 
   const state = useRoom(roomId)
+  const status = state.room?.status
+  useEffect(() => {
+    playMusic(status === 'playing' ? 'game' : 'menu')
+  }, [status])
 
   if (needsProfile)
     return (
@@ -351,6 +356,7 @@ function RoundEnd({ room, players, questions, answers, isHost }: Ctx) {
   const endsAt = room.phase_ends_at ? new Date(room.phase_ends_at).getTime() : 0
 
   useEffect(() => {
+    duckMusic(1.5)
     sfx.roundEnd()
     if (best > 0) void confetti({ particleCount: 100, spread: 90, origin: { y: 0.4 } })
   }, [best])
@@ -428,6 +434,7 @@ function Final({ room, players, answers, me }: Ctx) {
   const myRight = answers.filter((a) => a.player_id === me?.id && a.is_correct).length
 
   useEffect(() => {
+    duckMusic(3)
     sfx.fanfare()
     const end = Date.now() + 2000
     const colors = ['#ff6fb5', '#ffc93d', '#3dbbff', '#2ed3a0']

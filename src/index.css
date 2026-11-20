@@ -474,20 +474,40 @@ select {
   opacity: 0.6;
   cursor: default;
 }
-.mute {
+.sound-controls {
   position: fixed;
   top: 10px;
   right: 10px;
   z-index: 10;
+  display: flex;
+  gap: 6px;
+}
+.sound-controls button {
+  position: relative;
   border: none;
   background: #fff8;
   backdrop-filter: blur(4px);
   border-radius: 50%;
-  width: 44px;
-  height: 44px;
-  font-size: 1.3rem;
+  width: 40px;
+  height: 40px;
+  font-size: 1.15rem;
   cursor: pointer;
   box-shadow: 0 3px 0 #0002;
+}
+.sound-controls button.off {
+  opacity: 0.55;
+}
+/* Red slash over a switched-off icon. */
+.sound-controls button.off::after {
+  content: '';
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: 50%;
+  height: 3px;
+  background: #e74c3c;
+  border-radius: 2px;
+  transform: rotate(-45deg);
 }
 .avatar {
   display: inline-grid;
@@ -504,7 +524,7 @@ select {
   align-items: center;
   gap: 12px;
   color: white;
-  padding-right: 52px; /* room for the mute button */
+  padding-right: 96px; /* room for the sound buttons */
 }
 .bar h2 {
   margin: 0;

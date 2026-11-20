@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { isMuted, onMuteChange, setMuted, sfx } from '../lib/sound'
+import { musicEnabled } from '../lib/music'
+import { sfx, sfxEnabled } from '../lib/sound'
 import { serverNow } from '../game/useRoom'
 
 export function Avatar({ emoji, color, size = 44, title }: { emoji: string; color: string; size?: number; title?: string }) {
@@ -10,16 +11,40 @@ export function Avatar({ emoji, color, size = 44, title }: { emoji: string; colo
   )
 }
 
-export function MuteButton() {
-  const [m, setM] = useState(isMuted())
-  useEffect(() => {
-    const off = onMuteChange(setM)
-    return () => void off()
-  }, [])
+function useToggle(t: typeof sfxEnabled) {
+  const [on, setOn] = useState(t.get())
+  useEffect(() => t.subscribe(setOn), [t])
+  return on
+}
+
+/** Top-right switches for background music and sound effects. */
+export function SoundControls() {
+  const music = useToggle(musicEnabled)
+  const effects = useToggle(sfxEnabled)
   return (
-    <button className="mute" aria-label={m ? 'Turn sound on' : 'Turn sound off'} onClick={() => setMuted(!m)}>
-      {m ? '🔇' : '🔊'}
-    </button>
+    <div className="sound-controls">
+      <button
+        className={music ? '' : 'off'}
+        aria-pressed={music}
+        aria-label={music ? 'Turn music off' : 'Turn music on'}
+        title={music ? 'Music on' : 'Music off'}
+        onClick={() => musicEnabled.set(!music)}
+      >
+        🎵
+      </button>
+      <button
+        className={effects ? '' : 'off'}
+        aria-pressed={effects}
+        aria-label={effects ? 'Turn sound effects off' : 'Turn sound effects on'}
+        title={effects ? 'Sound effects on' : 'Sound effects off'}
+        onClick={() => {
+          sfxEnabled.set(!effects)
+          if (!effects) sfx.click()
+        }}
+      >
+        🔊
+      </button>
+    </div>
   )
 }
 
