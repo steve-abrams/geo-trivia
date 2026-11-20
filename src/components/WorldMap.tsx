@@ -76,11 +76,16 @@ export function WorldMap({ targetId, star, revealed }: WorldMapProps) {
     const targetArea = target ? path.area(target) : 0
     const ring = !target || targetArea < TINY_PX ? projection(center) : null
     const starXY = star ? projection([star[1], star[0]]) : null
-    return { projection, path, target, ring, starXY }
+    // Intro: start with the whole globe in view (centred on the target), then zoom in.
+    // In an orthographic projection a zoom is a plain 2D scale about the globe's centre,
+    // so we draw once at the final scale and animate a CSS transform.
+    const origin = projection(center) ?? [W / 2, H / 2]
+    const startScale = Math.min(1, (Math.min(W, H) / 2 - 16) / projection.scale())
+    return { path, target, ring, starXY, origin, startScale }
   }, [atlas, targetId, star])
 
   if (!view) return <div className="map-loading">🌍 Spinning up the globe…</div>
-  const { path, target, ring, starXY } = view
+  const { path, target, ring, starXY, origin, startScale } = view
   const sphere = path({ type: 'Sphere' }) ?? undefined
   const hl = revealed ? 'var(--map-correct)' : 'var(--map-target)'
 
@@ -92,6 +97,11 @@ export function WorldMap({ targetId, star, revealed }: WorldMapProps) {
           <stop offset="100%" stopColor="var(--ocean-dark)" />
         </radialGradient>
       </defs>
+      <g
+        key={targetId}
+        className="zoom-in"
+        style={{ transformOrigin: `${origin[0]}px ${origin[1]}px`, '--zoom-from': startScale } as React.CSSProperties}
+      >
       <path d={sphere} fill="url(#ocean)" />
       <path d={path(geoGraticule10()) ?? undefined} className="graticule" />
       {atlas!.map((f, i) =>
@@ -99,18 +109,21 @@ export function WorldMap({ targetId, star, revealed }: WorldMapProps) {
       )}
       {target && <path d={path(target) ?? undefined} className="land target" style={{ fill: hl }} />}
       {ring && (
-        <g transform={`translate(${ring[0]},${ring[1]})`}>
+        <g transform={`translate(${ring[0]},${ring[1]})`} className="after-zoom">
           <circle r="22" className="pulse" style={{ stroke: hl }} />
           <circle r="24" fill="none" stroke="white" strokeWidth="3" strokeDasharray="6 5" className="spin" />
           <circle r="7" style={{ fill: hl }} stroke="white" strokeWidth="2.5" />
         </g>
       )}
       {starXY && (
+ <g className="after-zoom">
         <text x={starXY[0]} y={starXY[1]} className="capital-star" textAnchor="middle" dominantBaseline="central">
           ★
         </text>
+        </g>
       )}
       <path d={sphere} className="sphere-edge" />
+      </g>
     </svg>
   )
 }
