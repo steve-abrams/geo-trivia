@@ -12,7 +12,22 @@ npm install
 npm run dev     # http://localhost:5173/geo-trivia/
 npm test        # vitest
 npm run build
+npm run smoke   # end-to-end check against the live Supabase project
 ```
+
+`.env` holds the Supabase URL and the **publishable** key (safe to commit; it's shipped to every browser anyway).
+
+## Backend
+
+`supabase/migrations/` is the schema, applied to project `ebioryxdimdgpssllkwg`:
+
+- Players are **anonymous Supabase users**. Tables are read-only to clients (RLS: you only see rooms you're in,
+  only questions shown so far, and other players' answers only after the reveal).
+- All writes go through RPCs: `create_room`, `join_room`, `start_game` (host sends the generated questions),
+  `submit_answer` (graded with server time), `tick` (any player advances an expired phase), `skip_phase`, `leave_room`.
+- Scoring: 10 points per correct answer, +5 for the fastest when 2+ players are right.
+- Realtime: `rooms` and `players` are in the `supabase_realtime` publication.
+- A daily `pg_cron` job deletes rooms older than a day and stale anonymous users.
 
 The question lab page accepts `?type=country|state|flag|capital` and `?id=<target>` to pin a specific map.
 
