@@ -1,5 +1,7 @@
 # 🌍 Geo Trivia
 
+**Play:** https://steve-abrams.github.io/geo-trivia/
+
 A family geography party game: name the country, the US state, the flag or the capital.
 Play solo, or Jackbox-style with friends using a room code.
 
@@ -31,6 +33,10 @@ npm run bot -- ABCD Robo 0.7   # a robot player joins room ABCD (70% accuracy) f
 - A daily `pg_cron` job deletes rooms older than a day and stale anonymous users.
 
 The question lab (`#/lab`) accepts `?type=country|state|flag|capital` and `?id=<target>` to pin a specific map.
+
+## Deploy
+
+Every push to `main` runs `.github/workflows/deploy.yml`: tests, build, publish to GitHub Pages.
 
 ## Data
 
