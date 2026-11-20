@@ -13,6 +13,7 @@ npm run dev     # http://localhost:5173/geo-trivia/
 npm test        # vitest
 npm run build
 npm run smoke   # end-to-end check against the live Supabase project
+npm run bot -- ABCD Robo 0.7   # a robot player joins room ABCD (70% accuracy) for multiplayer testing
 ```
 
 `.env` holds the Supabase URL and the **publishable** key (safe to commit; it's shipped to every browser anyway).
@@ -29,7 +30,7 @@ npm run smoke   # end-to-end check against the live Supabase project
 - Realtime: `rooms` and `players` are in the `supabase_realtime` publication.
 - A daily `pg_cron` job deletes rooms older than a day and stale anonymous users.
 
-The question lab page accepts `?type=country|state|flag|capital` and `?id=<target>` to pin a specific map.
+The question lab (`#/lab`) accepts `?type=country|state|flag|capital` and `?id=<target>` to pin a specific map.
 
 ## Data
 

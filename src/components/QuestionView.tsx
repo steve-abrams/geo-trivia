@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { COUNTRIES } from '../data/countries'
 import type { Question } from '../game/questions'
 import { Flag } from './Flag'
@@ -6,7 +7,7 @@ import { WorldMap } from './WorldMap'
 
 const LETTERS = 'ABCDEFG'
 
-export function promptFor(q: Question): string {
+export function promptFor(q: Pick<Question, 'type' | 'targetId'>): string {
   switch (q.type) {
     case 'country':
       return 'Which country is glowing? 🔎'
@@ -22,15 +23,19 @@ export function promptFor(q: Question): string {
 }
 
 export interface QuestionViewProps {
-  question: Question
+  question: Pick<Question, 'type' | 'targetId' | 'options' | 'answerId'>
   /** The option this player picked, if any. */
   picked?: string | null
   /** Once true, show which option was right. */
   revealed?: boolean
+  /** Buttons disabled (e.g. during the map intro). */
+  locked?: boolean
+  /** Extra content per option, e.g. avatars of who picked it (shown on reveal). */
+  badges?: Record<string, ReactNode>
   onPick?: (optionId: string) => void
 }
 
-export function QuestionView({ question: q, picked, revealed, onPick }: QuestionViewProps) {
+export function QuestionView({ question: q, picked, revealed, locked, badges, onPick }: QuestionViewProps) {
   const capital = q.type === 'capital' ? COUNTRIES.find((c) => c.id === q.targetId)?.capitalLatLng : null
   return (
     <div className={`question type-${q.type}`}>
@@ -48,9 +53,15 @@ export function QuestionView({ question: q, picked, revealed, onPick }: Question
         {q.options.map((o, i) => {
           const state = revealed ? (o.id === q.answerId ? 'right' : o.id === picked ? 'wrong' : 'dim') : o.id === picked ? 'picked' : ''
           return (
-            <button key={o.id} className={`option c${i} ${state}`} disabled={revealed || !!picked} onClick={() => onPick?.(o.id)}>
+            <button
+              key={o.id}
+              className={`option c${i} ${state}`}
+              disabled={revealed || locked || !!picked}
+              onClick={() => onPick?.(o.id)}
+            >
               <span className="letter">{LETTERS[i]}</span>
               <span className="label">{o.label}</span>
+              {badges?.[o.id] && <span className="badges">{badges[o.id]}</span>}
             </button>
           )
         })}

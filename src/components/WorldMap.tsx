@@ -105,7 +105,7 @@ export function WorldMap({ targetId, star, revealed }: WorldMapProps) {
       <path d={sphere} fill="url(#ocean)" />
       <path d={path(geoGraticule10()) ?? undefined} className="graticule" />
       {atlas!.map((f, i) =>
-        f === target ? null : <path key={String(f.id ?? i)} d={path(f) ?? undefined} className="land" />,
+        f === target ? null : <path key={i} d={path(f) ?? undefined} className="land" />,
       )}
       {target && <path d={path(target) ?? undefined} className="land target" style={{ fill: hl }} />}
       {ring && (
